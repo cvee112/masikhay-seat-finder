@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch Masikhay 2026 · Graduation Seat Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#7B1113; --green:#0b5c34; --green-soft:#dcefe4;
+    --ink:#231f20; --muted:#6b6461; --paper:#faf8f5; --line:#e6e0da;
+    --hl:#ffd54a; --hl-ring:#b8860b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5}
+  header{background:var(--maroon);color:#fff;padding:20px 16px 18px}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 4px}
+  header .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.85;font-weight:600}
+  header h1{font-family:Fraunces,serif;font-weight:700;font-size:clamp(24px,4.5vw,34px);margin:4px 0 2px}
+  header .sub{font-size:13px;opacity:.9}
+  .searchbar{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line);padding:12px 16px}
+  .searchbox{max-width:720px;margin:0 auto;position:relative}
+  .searchbox input{width:100%;padding:13px 16px;font-size:16px;font-family:inherit;border:2px solid var(--maroon);border-radius:10px;background:#fff;outline:none}
+  .searchbox input:focus{box-shadow:0 0 0 3px rgba(123,17,19,.15)}
+  .suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden;display:none}
+  .suggestions.open{display:block}
+  .suggestions button{display:block;width:100%;text-align:left;padding:10px 16px;border:0;background:none;font:inherit;cursor:pointer}
+  .suggestions button:hover,.suggestions button.active{background:#f4ece7}
+  .suggestions .pos{color:var(--muted);font-size:12px;margin-left:6px}
+  main{max-width:1280px;margin:0 auto;padding:16px}
+  .card{display:none;background:#fff;border:1px solid var(--line);border-left:6px solid var(--maroon);border-radius:12px;padding:16px 18px;margin:0 auto 18px;max-width:720px}
+  .card.show{display:block}
+  .card .name{font-family:Fraunces,serif;font-size:20px;font-weight:700}
+  .card .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:10px}
+  .card .fact .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .card .fact .v{font-size:17px;font-weight:600}
+  .card .note{margin-top:10px;font-size:13px;color:var(--muted)}
+  h2{font-family:Fraunces,serif;font-size:20px;margin:26px 0 6px;text-align:center}
+  .sectionnote{font-size:13px;color:var(--muted);margin:0 auto 12px;max-width:820px;text-align:center}
+  .mapscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff;padding:18px 14px}
+  .mapinner{width:max-content;margin:0 auto}
+  .stage{background:var(--ink);color:#fff;text-align:center;font-size:12px;letter-spacing:.35em;padding:8px 0;border-radius:6px;margin-bottom:12px}
+  .band{background:#f0eeea;border:1px dashed #d5cfc9;border-radius:6px;text-align:center;font-size:12px;color:var(--muted);padding:7px 0;margin:5px 0}
+  .grid{display:flex;flex-direction:column;gap:4px;margin-top:8px;position:relative}
+  .row{display:flex;gap:3px;align-items:stretch}
+  .rowlabel{width:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted)}
+  .rowlabel.right{margin-left:2px}
+  .seat{flex:0 0 31px;width:31px;height:42px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:default;padding:2px 1px}
+  .seat .id{font-size:6.5px;color:rgba(0,0,0,.38);line-height:1;margin-bottom:1px}
+  .seat .nm{font-weight:600;font-size:8px;line-height:1.12;text-align:center;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .seat.guest{opacity:.55}
+  .seat.guest .nm{font-weight:500}
+  .seat.pwd{background:var(--green-soft);color:var(--green)}
+  .seat.pwd .nm{font-weight:700}
+  .seat.empty{background:#f5f3f0;color:#c4bdb6}
+  .aisle{flex:0 0 30px;width:30px;background:#f7f5f2;border-radius:4px}
+  .aisle.procession{background:repeating-linear-gradient(180deg,rgba(123,17,19,.10) 0 7px,rgba(123,17,19,.02) 7px 14px)}
+  .aislelabel{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .aislelabel span{writing-mode:vertical-rl;font-size:10px;font-weight:700;letter-spacing:.22em;color:var(--maroon);white-space:nowrap}
+  .aislelabel.faint span{color:#b9b2ac;font-weight:600}
+  .seat.selected{outline:3px solid var(--hl-ring);background:var(--hl) !important;opacity:1;z-index:2}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:14px;justify-content:center}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.1);display:inline-block}
+  .balcony .blocks{display:flex;gap:18px;width:max-content;margin:0 auto}
+  .bblock{width:280px;border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
+  .bblock h3{margin:0 0 6px;font-size:13px;text-align:center}
+  .bblock .count{color:var(--muted);font-weight:400}
+  .brow{display:flex;gap:2px;margin-bottom:2px}
+  .bseat{flex:1;height:9px;background:#e4e0db;border-radius:2px}
+  .brl{width:18px;flex:0 0 18px;font-size:9px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+  .confirm{background:#fff8e6;border:1px solid #eedc9a;border-radius:10px;padding:12px 16px;font-size:13px;margin:26px auto 0;max-width:820px}
+  .confirm strong{color:#8a6d00}
+  footer{max-width:820px;margin:10px auto 40px;padding:0 16px;font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">UP-PGH Post-Graduate Interns · Batch Masikhay 2026</div>
+    <h1>Graduation Seat Finder</h1>
+    <div class="sub">Fleur-de-Lis Theater, St. Paul University Manila · July 30, 2026 · Guests seated by 10:30 AM</div>
+  </div>
+</header>
+
+<div class="searchbar">
+  <div class="searchbox">
+    <input id="q" type="search" placeholder="Type a graduate's surname (e.g. Escobar)" autocomplete="off" aria-label="Search graduate">
+    <div class="suggestions" id="sug"></div>
+  </div>
+</div>
+
+<main>
+  <div class="card" id="card">
+    <div class="name" id="cName"></div>
+    <div class="facts">
+      <div class="fact"><div class="k">Graduate's seat</div><div class="v" id="cSeat"></div></div>
+      <div class="fact"><div class="k">Guests 1 &amp; 2</div><div class="v" id="cGuests"></div></div>
+      <div class="fact"><div class="k">Processional order</div><div class="v" id="cOrder"></div></div>
+    </div>
+    <div class="note">Graduates sit in the Center Block, one seat each. Official guests sit as a pair under the graduate's surname. The processional enters through the right-center aisle; seats fill from the far left, so those first in line walk the farthest.</div>
+  </div>
+
+  <h2>Ground floor</h2>
+  <p class="sectionnote">Graduates: Center Block, alphabetical from the front-left seat (C10) — inverted from the printed chart so the processional can enter cleanly from the right-center aisle. Guests 1 &amp; 2: paired seats in the Left/Right blocks on the same side as their graduate, continuing at the back of the Center Block (rows M–Q). Seat numbers are physical and unchanged.</p>
+
+  <div class="mapscroll">
+    <div class="mapinner">
+      <div class="stage">S T A G E</div>
+      <div class="band">Row A · A1–A28 — Reserved: VIP &amp; Faculty</div>
+      <div class="band">Row B · B1–B32 — Reserved: VIP &amp; Faculty</div>
+      <div class="grid" id="grid"></div>
+      <div class="band" style="margin-top:9px">Rows M–Q — Guests 1 &amp; 2</div>
+      <div class="band">Rows R–W — Guests 1 &amp; 2 / overflow</div>
+      <div class="legend">
+        <span><span class="sw" style="background:#c9ddf5"></span>Graduate</span>
+        <span><span class="sw" style="background:#c9ddf5;opacity:.5"></span>Guests 1 &amp; 2</span>
+        <span><span class="sw" style="background:var(--green-soft)"></span>PWD / Senior</span>
+        <span><span class="sw" style="background:var(--hl)"></span>Selected</span>
+        <span><span class="sw" style="background:#f5f3f0"></span>Unassigned</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Balcony — Guests 3 &amp; 4</h2>
+  <p class="sectionnote">Free seating by section. Enter via the left stairs (Marshall G). PWDs and persons with mobility concerns are assisted to the ground floor instead.</p>
+  <div class="mapscroll balcony">
+    <div class="blocks">
+      <div class="bblock"><h3>Left Balcony <span class="count">· 72 seats</span></h3><div id="balL"></div></div>
+      <div class="bblock"><h3>Center Balcony <span class="count">· 120 seats</span></h3><div id="balC"></div></div>
+      <div class="bblock"><h3>Right Balcony <span class="count">· 72 seats</span></h3><div id="balR"></div></div>
+    </div>
+  </div>
+
+  <div class="confirm"><strong>For GradComm verification:</strong> graduates fill Center Block rows C–L (16 per row, alphabetical from front-left). Guest pairs fill the side blocks two rows per graduate row (left half of a graduate row → Left Block, right half → Right Block), then continue at the back of the Center Block (rows M–Q) once side rows run out. Please spot-check a few names against the final printed layout before distributing.</div>
+</main>
+
+<footer>Extra guests wait at the UP Manila / Robinsons side before the program and may take available ground-floor seats once the program proper begins. Main entrance (Marshall A) closes before the processional; Guests 1–2 arriving late are seated temporarily behind the Center Block.</footer>
+
+<script>
+const ROSTER = [
+"Abesta-Tuban, Katrina Isabel A.","Abonal, Nicole Anne O.","Agawin, Joshua Marvin A.","Alangco, Alvin Agassi Q.","Albao, Mark Joshua R.","Ang, Justin Victor G.","Antiporda, Jhune Viennca Elaine P.","Apollo, Mikaela L.","Aquino, Adrian Oniel R.","Arellano, Deignielle Bert D.","Ayban, Shielynne Khale M.","Babol, Lester S.","Bajuyo, Benedict Alain T.","Balacanao, Heidi Mae E.","Bantuas, Nehara G.","Barbosa, Kierson Brad A.","Barrera, Bernard Emil N.","Bengzon, Valerie Sol T.","Binondo, Natasha Allaine Alexandra P.","Buenavidez, Prince BJ M.","Cabab, Wilbur Jess P.","Cacho, Airishel C.","Caducoy, Stephen John B.","Cafe, Arvin O.","Canciller, Catherine Fatima L.","Caparros, Martina Micah R.","Caramoan, Ina Francesca C.","Carlos, Christine Joy T.","Castillo, Maria Carmela Q.","Cembrano, Isaiah Matthew D.","Cendaña, Kate Anne G.","Cervales, Hera Patricia R.","Chan, Diane Nicole G.","Chua, Tricia Mae V.","Cojuangco, Florenz Dean Q.","Contreras, Geuel Victor B.","Cuaresma, Ruselle Eliza A.","Daig, Charleskin M.","Dalidig, Tasnima Y.","De Chavez, Hazel Joy M.","De Jesus, Kevin C.","de Leon, Reynante II M.","de Paz, John Arnold I.","Delmendo, Jean D.","Delos Reyes, Rica B.","Denus, Mutya Anne","Echanique, Arcely P.","Encinares, Kenneth F.","Escobar, Carl Vincent E.","Escultura, Jaina U.","Espinosa, Kristine F.","Espiritu, Michaella Shaine F.","Estrella, Ikha Rhea C.","Evangelista, Alberto Jr. V.","Falcon, Dominic T.","Ferido, Kathleen Patricia Q.","Fermo, Mark Andrew Mari V.","Gaboya, Alianna Monine A.","Gadgude, Gremar Niña B.","Garcia, Gabriel Christian M.","Garcia, Joshua Marion M.","Gepulla, Karisa Hannah L.","Gilera, Czarina Czamiana F.","Giron, Carl Joshua H.","Go, Marion Carla A.","Gonzales, Francis Edward R.","Hiwatig, Mia Angela R.","Imperio, Ellaine Gayle P.","Ison, Micah J.","Jamma, Al-Sam'un I.","Juliano, Michael Angelo L.","Lambong, Hafida P.","Lariosa, Anne Marydon V.","Larong, Andro S.","Laurito, Ma. Gerrycka Aisleen P.","Leal, Jean Haye C.","Lee, Daniel Royce G.","Leonor, Matt Denvher M.","Llavor, April Angelu B.","Lompon, Dana Justine C.","Lumactod, Cedric T.","Luna, John Paul C.","Lunod, Lindsay S.","Magpantay, Francisco Jr. F.","Manio, Christian Jemverick S.","Manlogon, Jamaica P.","Manongsong, Joseph A.","Manuel, Nicole Angeli S.","Maravillas, Joey C.","Marcial, Rica Mae A.","Marquez, Leila Mae F.","Marzan, Christian Jhay M.","Monedero, Nico Paul I.","Mustapha, Juhary M.","Mustapha, Rainisah R.","Nagallo, Adelle Katrina P.","Natanauan, Nicole S.","Olaybal, Eleonor M.","Omamos, Jalan B.","Pabustan, Angelo D.","Pahang, Abigail T.","Palma, Winjay C.","Pama, Ma. Mil Adrianne L.","Paragas, Ramoncito Gabriel O.","Pariñas, John Ezro S.","Patiño, Carl Nikko T.","Pedroso, John Dominick M.","Perez, Ma. Isabel I.","Pobre, Aleine Q.","Punongbayan, Hannah Ella D.","Punzalan, Michaela Grace E.","Quevedo, Krizza Joy G.","Quilala, Regis Eliav S.","Quilaman, Evita Mae D.","Ramos, Jack Joash L.","Reyes, Ivy Bianca A.","Reyes, Jan Henri S.","Reyes, Justine Ericca A.","Rosal, Nathanielle Mae U.","Salvador, Elmer Jr. B.","Salvanera, Maria Azzizah C.","Sambile, Cathleen Ann N.","Sampayan, Salvador Jr. C.","San Juan, Angelica Bianca I.","Santos, Shannon Mitch Kelly M.","Santua, Bernadette Patricia C.","Serra, Hannah Diana Ann A.","Severino, Bettina Andrea F.","Suaso, Shariya A.","Sulay, Stephen Lorenzo","Tancontian, Diaren Marie A.","Tapawan, Alemae M.","Templonuevo, Dan Angelo T.","Tendido, Melannie Grace M.","Testa, John Carlo E.","Tolentino, Junia Clarisse B.","Tongcua, Helen Joy M.","Tormon, Jason D.","Torres, Ma. Haydelyn P.","Tuazon, Beatrice D.","Turalde, Henson B.","Ugali, Merille C.","Umali, Shenna Irish A.","Urtal, Gen-Ghis Ramil O.","Usero, Amiel John J.","Uy, Earl V.","Valbuena, Reincess E.","Valderas, Fernando Jr. E.","Valerio, Claire Louise A.","Velasco, Marielle Andrea C.","Verana, Keannu G.","Villanueva, Andrew Arnold D.","Wong, Joseph Rico D.","Ybo, Othneil Ian C.","Zalsos, Lady Hero Dale J.","Zulueta, Katherine P."
+];
+
+// ---- Geometry (mirror of the printed chart) ----
+const INTERN_ROWS = ["C","D","E","F","G","H","I","J","K","L"];
+const ALL_ROWS = ["C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"];
+const CENTER_COLS = [10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25];
+const LEFT_PAIRS  = [[2,3],[4,5],[6,7],[8,9]];
+const RIGHT_PAIRS = [[26,27],[28,29],[30,31],[32,33]];
+const CENTER_PAIRS= [[10,11],[12,13],[14,15],[16,17],[18,19],[20,21],[22,23],[24,25]];
+const ROW_TINTS = ["#f8c8cc","#f9d6bd","#fbe9b6","#fdf6b0","#dff0c2","#c9ecd9","#c6e9ec","#c9ddf5","#d6d0f2","#ecd0ee","#f2dcd0","#e8e3c9","#d4e8d6","#d0e0ee","#e3d6e8"];
+
+const interns = ROSTER.map(function(full,k){
+  return {
+    full: full, surname: full.split(",")[0], k: k,
+    row: INTERN_ROWS[Math.floor(k/16)], col: CENTER_COLS[k%16]
+  };
+});
+
+var overflow = [];
+interns.forEach(function(a){
+  var i = Math.floor(a.k/16), pos = a.k%16;
+  var side = pos < 8 ? "L" : "R";
+  var within = pos < 8 ? pos : pos - 8;
+  var sideRowIdx = 2*i + Math.floor(within/4);
+  if (sideRowIdx < ALL_ROWS.length) {
+    var pairs = side === "L" ? LEFT_PAIRS : RIGHT_PAIRS;
+    a.gRow = ALL_ROWS[sideRowIdx];
+    a.gCols = pairs[within % 4];
+    a.gBlock = side === "L" ? "Left Block" : "Right Block";
+  } else {
+    overflow.push(a);
+  }
+});
+overflow.forEach(function(a,j){
+  a.gRow = ["M","N","O","P","Q"][Math.floor(j/8)];
+  a.gCols = CENTER_PAIRS[j%8];
+  a.gBlock = "Center Block (back)";
+});
+
+var seatMap = {};
+interns.forEach(function(a){
+  seatMap[a.row+"-"+a.col] = {a:a, type:"intern"};
+  a.gCols.forEach(function(c){ seatMap[a.gRow+"-"+c] = {a:a, type:"guest"}; });
+});
+
+// ---- Render ground floor ----
+var grid = document.getElementById("grid");
+ALL_ROWS.forEach(function(r, ri){
+  var rowEl = document.createElement("div");
+  rowEl.className = "row";
+  var lab = document.createElement("div"); lab.className = "rowlabel"; lab.textContent = r;
+  rowEl.appendChild(lab);
+  for (var c = 1; c <= 34; c++) {
+    if (c === 10 || c === 26) {
+      var ai = document.createElement("div");
+      ai.className = "aisle" + (c === 26 ? " procession" : "");
+      if (ri === 0) ai.id = c === 26 ? "aisleR" : "aisleL";
+      rowEl.appendChild(ai);
+    }
+    var s = document.createElement("div");
+    s.className = "seat"; s.id = "seat-" + r + "-" + c;
+    if (c === 1 || c === 34) {
+      s.classList.add("pwd");
+      s.innerHTML = '<div class="id">' + c + '</div><div class="nm">PWD</div>';
+    } else {
+      var hit = seatMap[r + "-" + c];
+      if (hit) {
+        s.style.background = ROW_TINTS[ri];
+        if (hit.type === "guest") s.classList.add("guest");
+        s.innerHTML = '<div class="id">' + c + '</div><div class="nm">' + hit.a.surname + '</div>';
+        s.title = hit.a.full + (hit.type === "guest" ? " — Guests 1 & 2" : " — Graduate") + " · " + r + c;
+      } else {
+        s.classList.add("empty");
+        s.innerHTML = '<div class="id">' + c + '</div>';
+      }
+    }
+    rowEl.appendChild(s);
+  }
+  var lab2 = document.createElement("div"); lab2.className = "rowlabel right"; lab2.textContent = r;
+  rowEl.appendChild(lab2);
+  grid.appendChild(rowEl);
+});
+
+// Vertical aisle labels overlaid on the grid
+function aisleLabel(anchorId, text, cls){
+  var anchor = document.getElementById(anchorId);
+  var g = document.getElementById("grid");
+  var el = document.createElement("div");
+  el.className = "aislelabel" + (cls ? " " + cls : "");
+  el.style.left = (anchor.offsetLeft) + "px";
+  el.style.width = anchor.offsetWidth + "px";
+  el.innerHTML = "<span>" + text + "</span>";
+  g.appendChild(el);
+}
+aisleLabel("aisleL", "AISLE", "faint");
+aisleLabel("aisleR", "PROCESSIONAL &nbsp;↑");
+
+// ---- Render balcony ----
+var BAL_ROWS = ["AA","BB","CC","DD","EE","FF","HH","GG"];
+function balcony(elId, n){
+  var el = document.getElementById(elId);
+  BAL_ROWS.forEach(function(r){
+    var row = document.createElement("div"); row.className = "brow";
+    var l = document.createElement("div"); l.className = "brl"; l.textContent = r; row.appendChild(l);
+    for (var i = 0; i < n; i++){ var s = document.createElement("div"); s.className = "bseat"; row.appendChild(s); }
+    el.appendChild(row);
+  });
+}
+balcony("balL", 9); balcony("balC", 15); balcony("balR", 9);
+
+// ---- Search ----
+var q = document.getElementById("q"), sug = document.getElementById("sug"), card = document.getElementById("card");
+function norm(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
+var matches = [], activeIdx = -1, selected = null;
+
+function renderSug(){
+  sug.innerHTML = "";
+  matches.slice(0,8).forEach(function(a,i){
+    var b = document.createElement("button");
+    b.innerHTML = a.full + '<span class="pos">' + a.row + a.col + "</span>";
+    if (i === activeIdx) b.classList.add("active");
+    b.onclick = function(){ select(a); };
+    sug.appendChild(b);
+  });
+  sug.classList.toggle("open", matches.length > 0);
+}
+q.addEventListener("input", function(){
+  var v = norm(q.value.trim());
+  activeIdx = -1;
+  matches = v ? interns.filter(function(a){ return norm(a.full).indexOf(v) !== -1; }) : [];
+  renderSug();
+});
+q.addEventListener("keydown", function(e){
+  if (e.key === "ArrowDown"){ activeIdx = Math.min(activeIdx+1, Math.min(matches.length,8)-1); renderSug(); e.preventDefault(); }
+  else if (e.key === "ArrowUp"){ activeIdx = Math.max(activeIdx-1, 0); renderSug(); e.preventDefault(); }
+  else if (e.key === "Enter" && matches.length){ select(matches[Math.max(activeIdx,0)]); }
+  else if (e.key === "Escape"){ sug.classList.remove("open"); }
+});
+document.addEventListener("click", function(e){ if (!e.target.closest(".searchbox")) sug.classList.remove("open"); });
+
+function clearSel(a){
+  document.getElementById("seat-"+a.row+"-"+a.col).classList.remove("selected");
+  a.gCols.forEach(function(c){ document.getElementById("seat-"+a.gRow+"-"+c).classList.remove("selected"); });
+}
+function select(a){
+  if (selected) clearSel(selected);
+  selected = a;
+  q.value = a.full; sug.classList.remove("open");
+  document.getElementById("cName").textContent = a.full;
+  document.getElementById("cSeat").textContent = a.row + a.col + " · Center Block";
+  document.getElementById("cGuests").textContent = a.gRow + a.gCols[0] + "–" + a.gRow + a.gCols[1] + " · " + a.gBlock;
+  document.getElementById("cOrder").textContent = "#" + (a.k+1) + " of 156";
+  card.classList.add("show");
+  document.getElementById("seat-"+a.row+"-"+a.col).classList.add("selected");
+  a.gCols.forEach(function(c){ document.getElementById("seat-"+a.gRow+"-"+c).classList.add("selected"); });
+  document.getElementById("seat-"+a.row+"-"+a.col).scrollIntoView({behavior:"smooth", block:"center", inline:"center"});
+}
+</script>
+</body>
+</html>

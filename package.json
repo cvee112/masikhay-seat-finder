@@ -1,0 +1,11 @@
+{
+  "name": "masikhay-seat-finder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive graduation seat finder for UP-PGH Batch Masikhay 2026",
+  "scripts": {
+    "dev": "npx serve public",
+    "start": "npx serve public"
+  },
+  "license": "UNLICENSED"
+}
