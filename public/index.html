@@ -47,7 +47,7 @@
   .rowlabel{width:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted)}
   .rowlabel.right{margin-left:2px}
   .seat{flex:0 0 31px;width:31px;height:42px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:default;padding:2px 1px}
-  .seat .id{font-size:6.5px;color:rgba(0,0,0,.38);line-height:1;margin-bottom:1px}
+  .seat .id{font-size:7px;font-weight:600;color:rgba(0,0,0,.42);line-height:1;margin-bottom:1px;letter-spacing:.02em}
   .seat .nm{font-weight:600;font-size:8px;line-height:1.12;text-align:center;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .seat.guest{opacity:.55}
   .seat.guest .nm{font-weight:500}
@@ -99,11 +99,11 @@
       <div class="fact"><div class="k">Guests 1 &amp; 2</div><div class="v" id="cGuests"></div></div>
       <div class="fact"><div class="k">Processional order</div><div class="v" id="cOrder"></div></div>
     </div>
-    <div class="note">Graduates sit in the Center Block, one seat each. Official guests sit as a pair under the graduate's surname. The processional enters through the right-center aisle; seats fill from the far left, so those first in line walk the farthest.</div>
+    <div class="note">The graduate's seat is in the Center Block; their two official guests sit as a pair in the Left or Right block.</div>
   </div>
 
   <h2>Ground floor</h2>
-  <p class="sectionnote">Graduates: Center Block, alphabetical from the front-left seat (C10) — inverted from the printed chart so the processional can enter cleanly from the right-center aisle. Guests 1 &amp; 2: paired seats in the Left/Right blocks on the same side as their graduate, continuing at the back of the Center Block (rows M–Q). Seat numbers are physical and unchanged.</p>
+  <p class="sectionnote">Graduates sit in the Center Block, one seat each. Guests 1 &amp; 2 sit as a pair in the Left or Right block on the same side as their graduate, continuing at the back of the Center Block (rows M–Q).</p>
 
   <div class="mapscroll">
     <div class="mapinner">
@@ -133,7 +133,6 @@
     </div>
   </div>
 
-  <div class="confirm"><strong>For GradComm verification:</strong> graduates fill Center Block rows C–L (16 per row, alphabetical from front-left). Guest pairs fill the side blocks two rows per graduate row (left half of a graduate row → Left Block, right half → Right Block), then continue at the back of the Center Block (rows M–Q) once side rows run out. Please spot-check a few names against the final printed layout before distributing.</div>
 </main>
 
 <footer>Extra guests wait at the UP Manila / Robinsons side before the program and may take available ground-floor seats once the program proper begins. Main entrance (Marshall A) closes before the processional; Guests 1–2 arriving late are seated temporarily behind the Center Block.</footer>
@@ -204,17 +203,17 @@ ALL_ROWS.forEach(function(r, ri){
     s.className = "seat"; s.id = "seat-" + r + "-" + c;
     if (c === 1 || c === 34) {
       s.classList.add("pwd");
-      s.innerHTML = '<div class="id">' + c + '</div><div class="nm">PWD</div>';
+      s.innerHTML = '<div class="id">' + r + c + '</div><div class="nm">PWD</div>';
     } else {
       var hit = seatMap[r + "-" + c];
       if (hit) {
         s.style.background = ROW_TINTS[ri];
         if (hit.type === "guest") s.classList.add("guest");
-        s.innerHTML = '<div class="id">' + c + '</div><div class="nm">' + hit.a.surname + '</div>';
+        s.innerHTML = '<div class="id">' + r + c + '</div><div class="nm">' + hit.a.surname + '</div>';
         s.title = hit.a.full + (hit.type === "guest" ? " — Guests 1 & 2" : " — Graduate") + " · " + r + c;
       } else {
         s.classList.add("empty");
-        s.innerHTML = '<div class="id">' + c + '</div>';
+        s.innerHTML = '<div class="id">' + r + c + '</div>';
       }
     }
     rowEl.appendChild(s);
